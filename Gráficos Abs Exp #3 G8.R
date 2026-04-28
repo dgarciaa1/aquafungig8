@@ -1,0 +1,167 @@
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(RColorBrewer)
+library(car)
+library(lme4)
+library(lmtest)
+
+#### Cargamos el directorio de trabajo
+setwd("C:/Users/david/OneDrive/Documentos/EAFIT/Tesis de grado/AQUAFUNGI G8/Datos y scripts de gráficos/")
+
+
+### Pleurotus eryngii (PLER)
+
+## Cargamos los datos de la biomasa para PLER
+df_pler2 <- read_excel("Gráficos Abs G8.xlsx", sheet = "PLER 2026-2")
+
+## Transformamos las columnas categóricas a factores, y la ABS a numérica
+df_pler2$Species <- factor(df_pler2$Species)
+df_pler2$Treatment <- factor(df_pler2$Treatment)
+df_pler2$`Time (days)` <- factor(df_pler2$`Time (days)`)
+df_pler2$Replicate <- factor(df_pler2$Replicate)
+
+## Creamos un dataframe con la absorbancia promedio 
+## y errores estándares de PLER
+df_pler2_bar <- df_pler2 %>%
+  group_by(Species, Treatment, `Time (days)`) %>%
+  summarise(
+    `Absorbance (630nm)` = mean(Value),
+    se = sd(Value)/sqrt(n())
+  )
+
+## Graficamos una línea de puntos conectados para ver la Abs en el tiempo
+ggplot(df_pler2_bar, aes(x = `Time (days)`, y = `Absorbance (630nm)`)) +
+  geom_line(aes(group = Treatment, color = Treatment)) +
+  geom_point(aes(shape = Treatment, fill = Treatment),
+             color = "black",
+             size = 4,
+             stroke = 0.8) +
+  scale_shape_manual(values = c(
+    "3" = 21,  
+    "6" = 22,  
+    "9" = 23
+  )) +
+  scale_fill_manual(values = c(
+    "3" = "darkred",
+    "6" = "violet",
+    "9" = "pink"
+  )) +
+  scale_color_manual(values = c(
+    "3" = "darkred",
+    "6" = "violet",  
+    "9" = "pink",
+    "Whey" = "red",
+    "Tap water" = "skyblue1"
+  )) +
+  geom_errorbar(aes(ymin = `Absorbance (630nm)` - se, 
+                    ymax = `Absorbance (630nm)` + se, color = Treatment), 
+                width = 0.1,
+                linewidth = 1) +
+  scale_y_continuous(breaks = seq(0, 3, by = 0.4)) +
+  labs(title = "Pleurotus eryngii") +
+  theme(plot.title = element_text(size = 16, face = "italic"),
+        axis.title.x = element_text(size = 14, face = "bold"),
+        axis.title.y = element_text(size = 14, face = "bold"),
+        axis.text.x = element_text(size = 14.5),
+        axis.text.y = element_text(size = 14.5))
+
+## Cargamos un nuevo set de datos y transformamos las columnas para un LM
+df_pler2lm <- read_excel("Gráficos Abs G8.xlsx", sheet = "PLER 2026-2 LM")
+
+df_pler2lm$Species <- factor(df_pler2lm$Species)
+df_pler2lm$Media <- factor(df_pler2lm$Media)
+df_pler2lm$Treatment <- factor(df_pler2lm$Treatment)
+df_pler2lm$`Time (days)` <- as.numeric(df_pler2lm$`Time (days)`)
+df_pler2lm$Replicate <- factor(df_pler2lm$Replicate)
+df_pler2lm$Value <- as.numeric(df_pler2lm$Value)
+
+## Hacemos un modelo lineal (LM) de Abs en el tiempo.
+pler2lm_t3 <- lm(Value ~ `Time (days)`, data = subset(df_pler2lm, 
+                                                      Treatment == "3"))
+pler2lm_t6 <- lm(Value ~ `Time (days)`, data = subset(df_pler2lm, 
+                                                     Treatment == "6"))
+pler2lm_t9 <- lm(Value ~ `Time (days)`, data = subset(df_pler2lm, 
+                                                     Treatment == "9"))
+summary(pler2lm_t3)
+summary(pler2lm_t6)
+summary(pler2lm_t9)
+
+
+
+### Pycnoporus sanguineus (PYSA)
+
+## Cargamos los datos de la biomasa para PYSA
+df_pysa <- read_excel("Gráficos Abs G8.xlsx", sheet = "PYSA")
+
+## Transformamos las columnas categóricas a factores, y la ABS a numérica
+df_pysa$Species <- factor(df_pysa$Species)
+df_pysa$Treatment <- factor(df_pysa$Treatment)
+df_pysa$`Time (days)` <- factor(df_pysa$`Time (days)`)
+df_pysa$Replicate <- factor(df_pysa$Replicate)
+
+## Creamos un dataframe con la absorbancia promedio 
+## y errores estándares de PLER
+df_pysa_bar <- df_pysa %>%
+  group_by(Species, Treatment, `Time (days)`) %>%
+  summarise(
+    `Absorbance (630nm)` = mean(Value),
+    se = sd(Value)/sqrt(n())
+  )
+
+## Graficamos una línea de puntos conectados para ver la Abs en el tiempo
+ggplot(df_pysa_bar, aes(x = `Time (days)`, y = `Absorbance (630nm)`)) +
+  geom_line(aes(group = Treatment, color = Treatment)) +
+  geom_point(aes(shape = Treatment, fill = Treatment),
+             color = "black",
+             size = 4,
+             stroke = 0.8) +
+  scale_shape_manual(values = c(
+    "3" = 21,  
+    "6" = 22,  
+    "9" = 23
+  )) +
+  scale_fill_manual(values = c(
+    "3" = "darkred",
+    "6" = "violet",
+    "9" = "pink"
+  )) +
+  scale_color_manual(values = c(
+    "3" = "darkred",
+    "6" = "violet",  
+    "9" = "pink",
+    "Whey" = "red",
+    "Tap water" = "skyblue1"
+  )) +
+  geom_errorbar(aes(ymin = `Absorbance (630nm)` - se, 
+                    ymax = `Absorbance (630nm)` + se, color = Treatment), 
+                width = 0.1,
+                linewidth = 1) +
+  scale_y_continuous(breaks = seq(0, 3, by = 0.4)) +
+  labs(title = "Pycnoporus sanguineus") +
+  theme(plot.title = element_text(size = 16, face = "italic"),
+        axis.title.x = element_text(size = 14, face = "bold"),
+        axis.title.y = element_text(size = 14, face = "bold"),
+        axis.text.x = element_text(size = 14.5),
+        axis.text.y = element_text(size = 14.5))
+
+## Cargamos un nuevo set de datos y transformamos las columnas para un LM
+df_pysalm <- read_excel("Gráficos Abs G8.xlsx", sheet = "PYSA LM")
+
+df_pysalm$Species <- factor(df_pysalm$Species)
+df_pysalm$Media <- factor(df_pysalm$Media)
+df_pysalm$Treatment <- factor(df_pysalm$Treatment)
+df_pysalm$`Time (days)` <- as.numeric(df_pysalm$`Time (days)`)
+df_pysalm$Replicate <- factor(df_pysalm$Replicate)
+df_pysalm$Value <- as.numeric(df_pysalm$Value)
+
+## Hacemos un modelo lineal (LM) de Abs en el tiempo.
+pysalm_t3 <- lm(Value ~ `Time (days)`, data = subset(df_pysalm, 
+                                                     Treatment == "3"))
+pysalm_t6 <- lm(Value ~ `Time (days)`, data = subset(df_pysalm, 
+                                                     Treatment == "6"))
+pysalm_t9 <- lm(Value ~ `Time (days)`, data = subset(df_pysalm, 
+                                                     Treatment == "9"))
+summary(pysalm_t3)
+summary(pysalm_t6)
+summary(pysalm_t9)
